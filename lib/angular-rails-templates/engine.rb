@@ -25,12 +25,14 @@ module AngularRailsTemplates
     initializer 'angular-rails-templates', group: :all  do |app|
       if defined?(Sprockets::Railtie)
         config.assets.configure do |env|
-          env.register_mime_type 'text/ng-html', extensions: [".#{app.config.angular_templates.extension}"]
-          env.register_transformer 'text/ng-html', 'application/javascript', AngularRailsTemplates::Processor
-
-          # These engines render markup as HTML
-          app.config.angular_templates.markups.each do |ext|
-            env.register_engine ".#{ext}", Tilt[ext]
+          if env.respond_to?(:register_transformer)
+            env.register_mime_type 'text/ng-html', extensions: [".#{app.config.angular_templates.extension}"]
+            env.register_transformer 'text/ng-html', 'application/javascript', AngularRailsTemplates::Processor
+          end
+          if env.respond_to?(:register_engine)
+            app.config.angular_templates.markups.each do |ext|
+              env.register_engine ".#{ext}", Tilt[ext], silence_deprecation: true
+            end
           end
         end
       end
